@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CameraScan</string>
+    <string name="ic_document">文档</string>
+    <string name="ic_whiteboard">白板</string>
+    <string name="ic_pic">照片</string>
+    <string name="ic_identity">名片</string>
+</resources>

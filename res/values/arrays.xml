@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="picture_types">
+        <item>文档</item>
+        <item>白板</item>
+        <item>照片</item>
+        <item>名片</item>
+    </string-array>
+</resources>

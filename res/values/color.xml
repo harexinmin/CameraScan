@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="title_bg">#ABE631</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="blue">#0000FF</color>
+    <color name="yellow">#FFFF00</color>
+    <color name="green">#00FF00</color>
+    <color name="lightgreen">#92e296</color>
+    <color name="gray">#7D7D7D</color>
+    <color name="red">#d83927</color>
+
+
+    <color name="deepwhite">#EBEFF0</color>
+    <color name="lightwhite">#E6E6E6</color>
+    <color name="whitegray">#CACACA</color>
+    <color name="lightblue">#64A3F6</color>
+    <color name="darkgray">#989898</color>
+    <color name="lightgray">#545454</color>
+    <color name="microgray">#222222</color>
+
+    <color name="blackgray">#2E2E2E</color>
+    <color name="magenta">#FF00FF</color>
+    <color name="dark_green">#009900</color>
+    <color name="ltpink">#EBC79E</color>
+
+
+    <color name="normal_black">#1B1B1B</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="overall_bg">#ebeff0</color>
+    <color name="red_hightlight">#ff11ee</color>
+    <color name="text_color">#333333</color>
+    <color name="sec_text_color">#8C8C8C</color>
+
+    <!-- 按钮颜色 -->
+    <color name="btn_normal">#ef6c70</color>
+    <color name="btn_pressed">#d76165</color>
+
+    <!-- 蓝色背景 -->
+    <color name="blue_normal">#81c4f3</color>
+    <color name="blue_pressed">#74b0da</color>
+
+    <!-- 绿色背景 -->
+    <color name="green_normal">#5ebc8f</color>
+    <color name="green_pressed">#54a980aa</color>
+
+    <!-- 标题高亮颜色 -->
+    <color name="title_highlight">#989898</color>
+
+    <color name="separate_line">#d5d5d5</color>
+    <color name="total_bg_color">#ebeff0</color>
+</resources>
