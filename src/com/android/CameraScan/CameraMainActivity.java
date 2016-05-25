@@ -11,6 +11,8 @@ import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.*;
@@ -41,11 +43,16 @@ public class CameraMainActivity extends Activity implements
 	private ImageView autoImage;
 	private TypeAdapter mAdapter;
 	private int surfacewidth;
-	private boolean auto = false;
+	//private boolean auto = false;
 	private Camera.Parameters parameters;
 	private SharedPrefsUtil sp = null;
 	private Size suitableSize = null;
 	private Bitmap mBitmap = null;
+	private boolean bTakePic=false;
+	//Flash mode;
+	private final int msgFLASH_OFF=0;
+	private final int msgFLASH_ON=1;
+	private final int msgFLASH_AUTO=2;
 
 	public String [] Cammode = {
 			"DOCUMENT", "WHITEBOARD", "PHOTO", "BUSNIESSCARD"
@@ -68,29 +75,58 @@ public class CameraMainActivity extends Activity implements
 		mContext = getApplicationContext();
 		// Make UI fullscreen.
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		bTakePic=false;
 		initView();
 		initShareper();
+		initFlash();
 
 		mSurfaceHolder = mSurfaceView.getHolder();
 		mSurfaceHolder.addCallback(this);
 
-		if (this.checkCameraHardware() && (mCamera == null)) {
-			mCamera = getCamera();
-			try{
-			mCamera.setPreviewDisplay(mSurfaceHolder);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			auto = false;
-		}
 		autoImage.setBackgroundResource(R.drawable.ic_camfocuswhite);
-	}
 
+	}
+	Handler mHandler = new Handler(){
+		@Override
+		public void handleMessage(Message msg) {
+			if (mCamera==null){
+				mCamera=getCamera();
+			}
+			parameters=mCamera.getParameters();
+			SharedPrefsUtil spFlash= new SharedPrefsUtil(mContext);
+             switch (msg.what){
+				 case msgFLASH_OFF:
+					 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+					 mFlashBtn.setImageResource(R.drawable.ic_action_flash_off);
+					 spFlash.putValue("FlashMode",msgFLASH_OFF);
+					 break;
+				 case msgFLASH_ON:
+					 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+					 mFlashBtn.setImageResource(R.drawable.ic_action_flash_on);
+					 spFlash.putValue("FlashMode",msgFLASH_ON);
+					 break;
+				 case msgFLASH_AUTO:
+					 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+					 mFlashBtn.setImageResource(R.drawable.ic_action_flash_automatic);
+					 spFlash.putValue("FlashMode",msgFLASH_AUTO);
+					 break;
+				 default:
+					 break;
+			 }
+			mCamera.setParameters(parameters);
+			super.handleMessage(msg);
+		}
+	};
+	private void initFlash(){
+		sp = new SharedPrefsUtil(mContext);
+		int flashmode = sp.getValue("FlashMode", -1);
+		if(flashmode!=-1)
+		mHandler.sendEmptyMessage(flashmode);
+	}
 	private void initShareper() {
 		sp = new SharedPrefsUtil(mContext);
 		String lastmode = sp.getValue(mode, null);
-		Log.v(TAG,"initShareper lastmode = " + lastmode);
+		//Log.v(TAG,"initShareper lastmode = " + lastmode);
 		if(lastmode == null){
 			Log.v(TAG,"lastmode = null ,create one xml");
 			sp.putValue(mode, Cammode[0]);
@@ -203,6 +239,7 @@ public class CameraMainActivity extends Activity implements
 	private void releaseCamera() {
 		if (mCamera != null) {
 			Log.v(TAG,"releaseCamera");
+			bTakePic=false;
 			mCamera.setPreviewCallback(null);
 			mCamera.stopPreview();//stop camera preview
 			mCamera.release();
@@ -213,7 +250,16 @@ public class CameraMainActivity extends Activity implements
 	@Override
 	protected void onResume() {
 		Log.v(TAG,"onResume");
-
+		if (this.checkCameraHardware() && (mCamera == null)) {
+			mCamera = getCamera();
+			try{
+				mCamera.setPreviewDisplay(mSurfaceHolder);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			//auto = false;
+		}
 		mAdapter = new TypeAdapter(mContext);
 		initAdapter();
 		mList.setAdapter(mAdapter);
@@ -231,6 +277,7 @@ public class CameraMainActivity extends Activity implements
 	protected void onPause() {
 		Log.v(TAG,"onPause");
 		dismissPopupWindow();					//dismiss popwindow
+		//releaseCamera();
 		super.onPause();
 	}
 
@@ -301,13 +348,15 @@ public class CameraMainActivity extends Activity implements
 	public boolean onTouchEvent(MotionEvent event) {
 		// 屏幕触摸事件
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			if(mCamera==null)
+				mCamera=getCamera();
 			// 按下时自动对焦
 			mCamera.autoFocus(new AutoFocusCallback() {
 				@Override
 				public void onAutoFocus(boolean success, Camera arg1) {
 					// TODO Auto-generated method stub
 					if (success) {
-						auto = true;
+						//auto = true;
 						autoImage
 								.setBackgroundResource(R.drawable.ic_camfocusgreen);
 					}
@@ -357,28 +406,21 @@ public class CameraMainActivity extends Activity implements
 			if (null == mCamera) {
 				mCamera = Camera.open();
 			}
-
 			parameters = mCamera.getParameters();
 			String mFlashMode = parameters.getFlashMode();
 			Log.v(TAG, "onClick camera FlashMode:" + mFlashMode);
+
 			if (mFlashMode.equalsIgnoreCase(Camera.Parameters.FLASH_MODE_OFF)) {
-				parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
-				mFlashBtn.setImageResource(R.drawable.ic_action_flash_on);
-				mCamera.setParameters(parameters);
-				mCamera.startPreview();
+            mHandler.sendEmptyMessage(msgFLASH_ON);
+				//mCamera.startPreview();
 			} else if (mFlashMode
 					.equalsIgnoreCase(Camera.Parameters.FLASH_MODE_ON)) {
-				parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-				mFlashBtn
-						.setImageResource(R.drawable.ic_action_flash_automatic);
-				mCamera.setParameters(parameters);
-				mCamera.startPreview();
+		          mHandler.sendEmptyMessage(msgFLASH_AUTO);
+				//mCamera.startPreview();
 			} else if (mFlashMode
 					.equalsIgnoreCase(Camera.Parameters.FLASH_MODE_AUTO)) {
-				parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-				mFlashBtn.setImageResource(R.drawable.ic_action_flash_off);
-				mCamera.setParameters(parameters);
-				mCamera.stopPreview();
+				mHandler.sendEmptyMessage(msgFLASH_OFF);
+				//mCamera.stopPreview();
 			}
 
 			break;
@@ -386,12 +428,16 @@ public class CameraMainActivity extends Activity implements
 			showPopupWindow();
 			break;
 		case R.id.camera_take:
-			parameters = mCamera.getParameters();
-			parameters.setPictureFormat(ImageFormat.JPEG);
-			// 自动对焦
-			// params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-			mCamera.setParameters(parameters);
-			mCamera.takePicture(null, null, this);
+			if(!bTakePic){
+				bTakePic=true;// camera is busy
+				parameters = mCamera.getParameters();
+				parameters.setPictureFormat(ImageFormat.JPEG);
+				// 自动对焦
+				// params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+				mCamera.setParameters(parameters);
+				mCamera.takePicture(null, null, this);
+
+			}
 			break;
 		}
 
